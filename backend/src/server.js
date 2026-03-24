@@ -5,10 +5,12 @@ import path from "path"
 
 import authRoutes from "./routes/auth.routes.js"
 import messageRoutes from "./routes/message.routes.js"
+import { connectDB } from "./lib/db.js"
 
 const app = express();
 const __dirname = path.resolve()
 const PORT = process.env.PORT || 3000
+app.use(express.json())
 
 
 app.use("/api/auth",authRoutes)
@@ -22,4 +24,11 @@ if(process.env.NODE_ENV === "production"){
     })
 }
 
-app.listen(PORT,()=> console.log("server running on port ",PORT))
+const startServer = async ()=>{
+    await connectDB()
+    app.listen(PORT,()=>{
+        console.log("Server running on port ",PORT)
+    })
+}
+
+startServer()
