@@ -103,12 +103,12 @@ export const logout = (_,res)=>{
     res.status(200).json({msg : "logged out successfully"})
 }
 
-export const updateProfile = async(req,body)=>{
+export const updateProfile = async(req,res)=>{
     try {
         const {profilePic} = req.body
         if(!profilePic) return res.status(400).json({msg: "Profile pic required."})
         
-        const user= req.user._id
+        const userId= req.user._id
         
         const uploadResponse = await cloudinary.uploader.upload(profilePic)
 
