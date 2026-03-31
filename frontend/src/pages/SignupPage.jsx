@@ -7,7 +7,7 @@ import {Link} from "react-router"
 
 function SignupPage(){
     const [formData,setFormData]  = useState({fullName : "",email : "",password : ""})
-    const {signup,isSigninigUp} = useAuthStore()
+    const {signup,isSigningUp} = useAuthStore()
 
     const handleSubmit = (e)=>{
         e.preventDefault()
@@ -67,8 +67,8 @@ function SignupPage(){
                                         </div>
                                     </div>
                                     {/*Submit Button */}
-                                    <button className="auth-btn" type="submit" disabled={isSigninigUp}>
-                                        {isSigninigUp ? (
+                                    <button className="auth-btn" type="submit" disabled={isSigningUp}>
+                                        {isSigningUp ? (
                                             <LoaderIcon className="w-full h-5 animate-spin text-center"/>
                                         ):("Create Account")}
                                     </button>
