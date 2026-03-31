@@ -18,7 +18,7 @@ export const signup = async(req,res)=>{
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return res.status(400).json({ message: "Invalid email format" });
+            return res.status(400).json({ msg: "Invalid email format" });
         }
 
         const user = await User.findOne({email})
