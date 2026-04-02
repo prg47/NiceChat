@@ -103,21 +103,43 @@ export const logout = (_,res)=>{
     res.status(200).json({msg : "logged out successfully"})
 }
 
-export const updateProfile = async(req,res)=>{
+
+export const updateProfile = async (req, res) => {
     try {
-        const {profilePic} = req.body
-        if(!profilePic) return res.status(400).json({msg: "Profile pic required."})
-        
-        const userId= req.user._id
-        
-        const uploadResponse = await cloudinary.uploader.upload(profilePic)
+        const { profilePic } = req.body
+        if (!profilePic) return res.status(400).json({ msg: "Profile pic required." })
 
-        const updatedUser  =   await User.findByIdAndUpdate(userId , {profilePic : uploadResponse.secure_url},{new:true})
+        const userId = req.user._id
 
-        res.status(200).json({updatedUser})
-        
+        // Use raw fetch instead of SDK — bypasses the 403 issue entirely
+        const formData = new FormData()
+        formData.append("file", profilePic)
+        formData.append("api_key", ENV.CLOUDINARY_API_KEY)
+        formData.append("upload_preset", "ml_default") // Cloudinary's default unsigned preset
+
+        const cloudinaryRes = await fetch(
+            `https://api.cloudinary.com/v1_1/${ENV.CLOUDINARY_CLOUD_NAME}/image/upload`,
+            { method: "POST", body: formData }
+        )
+
+        if (!cloudinaryRes.ok) {
+            const err = await cloudinaryRes.text()
+            console.log("Cloudinary error:", err)
+            return res.status(500).json({ msg: "Image upload failed" })
+        }
+
+        const uploadData = await cloudinaryRes.json()
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { profilePic: uploadData.secure_url },
+            { new: true }
+        )
+
+        res.status(200).json({ updatedUser })
+
     } catch (error) {
-        console.log("Error in update profile controller : ",error)
-        res.status(500).json({msg : "Internal server error"})
+        console.log("Error in update profile controller:", error.message)
+        res.status(500).json({ msg: "Internal server error" })
     }
 }
