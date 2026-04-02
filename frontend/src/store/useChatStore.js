@@ -10,7 +10,7 @@ export const useChatStore =  create((set,get)=>({
     selectedUser : null,
     isUsersLoading : false,
     isMessagesLoading : false,
-    isSoundEnabled : localStorage.getItem("isSoundEnabled") === "true",
+    isSoundEnabled : JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
 
     toggleSound : ()=>{
         localStorage.setItem("isSoundEnabled",!get().isSoundEnabled)
@@ -19,13 +19,13 @@ export const useChatStore =  create((set,get)=>({
 
     setActiveTab : (tab)=> set({activeTab : tab}),
 
-    setSelectiveUser : (selectedUser)=> set({selectedUser : selectedUser}),
+    setSelectedUser : (selectedUser)=> set({selectedUser : selectedUser}),
 
     getAllContacts : async()=>{
         set({isUsersLoading : true})
         try {
             const res = await axiosInstance.get("/messages/contacts")
-            set({allContacts : res.data})
+            set({allContacts : res.data.filteredUsers})
         } catch (error) {
             toast.error(error.response.data.msg)
         } finally {
