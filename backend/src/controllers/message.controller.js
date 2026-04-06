@@ -34,11 +34,11 @@ export const getMessagesByUserId = async (req , res)=>{
     }
 }
 
-export const sendMessage  = async( req, res) => {
+export const sendMessage = async (req, res) => {
     try {
-        const {text , image} = req.body
-        const { id : receiverId} = req.params
-        const senderId = req.user._id
+        const { text, image } = req.body;
+        const { id: receiverId } = req.params;
+        const senderId = req.user._id;
 
         if (!text && !image) {
             return res.status(400).json({ message: "Text or image is required." });
@@ -51,30 +51,49 @@ export const sendMessage  = async( req, res) => {
             return res.status(404).json({ message: "Receiver not found." });
         }
 
-        let imageUrl
-        if(image){
-            //upload base 64 imag to cloudinary
-            const uploadResponse = await cloudinary.uploader.upload(image)
-            imageUrl = uploadResponse.secure_url
+        let imageUrl;
+        if (image) {
+            // Build form data for Cloudinary REST API
+            const formData = new FormData();
+            formData.append("file", image);                                      // base64 string
+            formData.append("upload_preset", "ml_default");                 // your unsigned preset name
+            formData.append("folder", "chat_images");                            // optional
+
+            const cloudinaryRes = await fetch(
+                `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
+                {
+                    method: "POST",
+                    body: formData,
+                }
+            );
+
+            if (!cloudinaryRes.ok) {
+                const err = await cloudinaryRes.json();
+                console.log("Cloudinary error:", err);
+                return res.status(400).json({ message: "Image upload failed.", detail: err });
+            }
+
+            const cloudinaryData = await cloudinaryRes.json();
+            imageUrl = cloudinaryData.secure_url;
         }
 
         const newMessage = new Message({
             senderId,
             receiverId,
             text,
-            image : imageUrl
-        })
+            image: imageUrl,
+        });
 
-        await newMessage.save()
+        await newMessage.save();
 
-        //todo : send message in real time if user is online
+        // todo: real-time socket emit here
 
-        res.status(201).json(newMessage)
+        res.status(201).json(newMessage);
     } catch (error) {
-        console.log("Error in send Message controller : ",error.message)
-        res.status(500).json({msg : "Internal server error"})
+        console.log("Error in sendMessage controller:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
-}
+};
 
 export const getChatPartners  = async(req,res)=>{
     try {
